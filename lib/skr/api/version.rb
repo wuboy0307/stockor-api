@@ -4,6 +4,6 @@
 # The API copies the version ito Skr::API::VERSION in api.rb
 module Skr
     module API
-        VERSION = '0.1.1'
+        VERSION = '0.2'
     end
 end

@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'skr/api/version'
 
 Gem::Specification.new do |spec|
-    spec.name          = "skr-api"
+    spec.name          = "stockor-api"
     spec.version       = Skr::API::VERSION
     spec.authors       = ["Nathan Stitt"]
     spec.email         = ["nathan@stitt.org"]
@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
     spec.require_paths = ["lib"]
 
     spec.add_dependency "grape", '~> 0.7.0'
+    spec.add_dependency "stockor-core", "0.2"
     spec.add_dependency "grape-entity", '~> 0.4.2'
 
     spec.add_development_dependency "bundler", "~> 1.5"
