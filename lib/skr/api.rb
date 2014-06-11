@@ -15,6 +15,3 @@ require_relative 'api/error_formatter'
 require_relative 'api/controller'
 require_relative 'api/root'
 require_relative 'api/routes'
-
-#require 'require_all'
-#require_rel 'api/*.rb'
