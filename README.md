@@ -1,13 +1,13 @@
 # Stockor API
 
 Stockor API is a REST API for the Stockor ERP system.
-It exposes the models and business logic defined in Skr::Core.
+It exposes the models and business logic defined in Stockor::Core.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'skr-api'
+    gem 'stockor-api'
 
 And then execute:
 
@@ -15,7 +15,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install skr-api
+    $ gem install stockor-api
 
 ## Usage
 
@@ -30,7 +30,7 @@ For an example using Rails, modify the config/routes.rb file and add:
 
 The standard instructions are always good:
 
-1. Fork it ( http://github.com/<my-github-username>/skr-api/fork )
+1. Fork it ( http://github.com/<my-github-username>/stockor-api/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
