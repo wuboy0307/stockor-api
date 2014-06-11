@@ -53,6 +53,16 @@ module Skr
                 end
 
                 unless options[:immutable]
+                    patch "#{prefix}/#{path}/:id" do
+                        env[:model]=model
+                        sleep 10
+                        auth = authenticate!(model, :put)
+                        controller = rest_controller.new(model, auth, params)
+                        controller.nested_attribute = parent_attribute if parent_attribute
+                        response = controller.perform_update
+                        status(406) if false == response[:success]
+                        response
+                    end
 
                     # update
                     put "#{prefix}/#{path}/:id" do
