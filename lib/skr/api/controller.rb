@@ -16,7 +16,7 @@ module Skr
         #    * o: (order)    Order by, { field => "ASC|DESC" }
         #    * l: (limit)    Limit the returned rows to the count
         #    * s: (start)    Start the query at the given offset (for paging)
-        #
+        #    * df: (data format) Should data be returned as 'object' (default) or 'array'
         # The parameters are deliberately shortened so they can be used in
         # query parameters without blowing the URL up to an unacceptable length
 
@@ -34,11 +34,11 @@ module Skr
             def perform_retrieval
                 query   = build_query
                 options = build_reply_options
-
-                options[:total_count] = query.dup.count if should_include_total_count?(options)
+pp params
+                options[:total_count] = query.dup.count if should_include_total_count?
                 query   = add_modifiers_to_query(query)
                 if params[:id]
-                    query  = query.where(id: params[:id]).first!
+                    query  = query.first!
                 end
                 build_reply(query, :retrieve, options)
             end
@@ -64,6 +64,32 @@ module Skr
             end
 
           protected
+            # @return [Array<String>] The fields to include in query.  May represent either an attribute or a method
+            def requested_fields
+                [*params[:f]]
+            end
+            def reply_with_array?
+                params[:df] == 'array'
+            end
+            def query_scopes
+                params[:w]
+            end
+            def query_params
+                params[:q]
+            end
+            def include_associations
+                [*params[:i]]
+            end
+            def sort_order
+                params[:o]
+            end
+            def query_limit_size
+                limit = max_query_results_size
+                params[:l] ? [ params[:l].to_i, limit ].min : limit
+            end
+            def query_offset
+                params[:s]
+            end
 
             # json methods
             # constructs a Hash with success, messages, and data keys and
@@ -85,9 +111,19 @@ module Skr
                 json.merge!({
                                 :success => success,
                                 :message => options[:messsage] || json_status_str(query, type.to_s.capitalize, success),
-                                :data    => success ? query.as_json(options) : []
+                                :data    => success ? records_for_reply(query, options) : []
                             })
                 return json
+            end
+
+
+            # @return Array<Array> returns either an array of fields
+            def records_for_reply(query,options)
+                if reply_with_array?
+                    query.pluck( *requested_fields )
+                else
+                    query.as_json(options)
+                end
             end
 
             def json_status_str(record, type, success)
@@ -102,20 +138,22 @@ module Skr
 
             # reply options
 
-            def should_include_total_count?(params)
+            # Should the result include the total number of available records
+            def should_include_total_count?
                 params[:l] && params[:s] && ! params[:id]
             end
 
+            # Extract options that are suitable for use in 'as_json'
             def build_reply_options
                 options = {}
-                if params.has_key?(:i)
-                    options[:include] = [*(params[:i])].each_with_object({}) do |association, includes|
+                if include_associations.any?
+                    options[:include] = include_associations.each_with_object({}) do |association, includes|
                         includes.merge! build_allowed_associations(association, user)
                     end
                 end
 
-                if params.has_key?(:f)
-                    options[:methods] = [*(params[:f])].select{|f| model.has_exported_method?(f,user) }
+                if requested_fields.any?
+                    options[:methods] = requested_fields.select{|f| model.has_exported_method?(f,user) }
                 end
                 options
             end
@@ -149,24 +187,27 @@ module Skr
             # query options
 
             def build_query(query = model.all)
+                if params[:id]
+                    query = query.where(id: params[:id])
+                end
                 if nested_attribute && params[nested_attribute]
                     query = query.where(Hash[ nested_attribute, params[nested_attribute]])
                 end
-                if params[:w]
+                if query_scopes.present?
                     query = add_scope_to_query(query)
                 end
-                if params[:q].is_a?(Hash)
-                    query = add_hash_to_query(query, params[:q])
+                if query_params.present?
+                    query = add_params_to_query(query)
                 end
                 query
             end
 
             def add_modifiers_to_query(query)
                 query = query.limit(query_limit_size)
-                query = query.offset(params[:s].to_i) if params[:s]
+                query = query.offset(query_offset.to_i) if query_offset.present?
 
-                if params[:i].present?
-                    allowed_includes = [ *params[:i] ].each_with_object([]) do |desired, results|
+                if include_associations.any?
+                    allowed_includes = include_associations.each_with_object([]) do |desired, results|
                         if desired.is_a?(Hash)
                             nested = {}
                             desired.each do | name, sub_associations |
@@ -174,13 +215,13 @@ module Skr
                             end
                             results.push(nested) unless nested.empty?
                         else
-                            results.push( include.to_sym ) if model.has_exported_association?(include,user)
+                            results.push(desired.to_sym) if model.has_exported_association?(desired,user)
                         end
                     end
                     query = query.includes(allowed_includes) unless allowed_includes.empty?
                 end
-                if params[:o].present?
-                    params[:o].each do | fld, dir |
+                if sort_order.present?
+                    sort_order.each do | fld, dir |
                         query = query.order( fld.gsub(/[^\w|^\.]/,'') + ' ' + ( ( 'asc' == dir.downcase ) ? 'ASC' : 'DESC' ) )
                     end
                 end
@@ -188,17 +229,13 @@ module Skr
 
             end
 
-            def query_limit_size
-                limit = max_query_results_size
-                params[:l] ? [ params[:l].to_i, limit ].min : limit
-            end
 
             def max_query_results_size
                 250 # should be enough for everybody, amirite?
             end
 
             def add_scope_to_query(query)
-                params[:w].each do | name, arg |
+                query_scopes.each do | name, arg |
                     if model.has_exported_scope?(name,user)
                         args = [name]
                         args.push( arg ) unless arg.blank?
@@ -208,8 +245,8 @@ module Skr
                 query
             end
 
-            def add_hash_to_query(query, clause)
-                clause.each do | field, value |
+            def add_params_to_query(query)
+                query_params.each do | field, value |
                     next unless ( field = convert_field_to_arel(field) )
                     condition = if value.is_a?(Hash) && value.has_key?('value')
                                     api_op_string_to_arel_predicate(field, value['op'], value['value'])
