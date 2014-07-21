@@ -1,6 +1,6 @@
 notification :growl
 
-guard :minitest, :all_on_start => true do
+guard :minitest, :all_on_start => false do
     watch(%r{^test/test_helper\.rb}) { 'test' }
     watch(%r{^lib/skr/api/controller\.rb}) { 'test/controller_test.rb' }
 

@@ -6,7 +6,7 @@ module Skr
             end
 
             def current_user
-                nil
+                Skr::UserProxy.new
             end
 
             def error_message

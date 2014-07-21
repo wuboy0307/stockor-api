@@ -1,3 +1,5 @@
+require 'skr/core/configuration'
+
 module Skr
     module API
         class Configuration < Skr::Core::Configuration

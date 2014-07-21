@@ -33,6 +33,7 @@ class ControllerTest < Skr::TestCase
 
     def test_loading_scopes
         so = skr_sales_orders(:first)
+        assert skr_addresses(:amazon)
         get "sales-orders/#{so.id}", { w: {'with_amount_details'=>'t'} }
         assert_equal so.total.to_s, json_data.total
     end

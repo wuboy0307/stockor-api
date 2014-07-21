@@ -23,7 +23,6 @@ module Skr
         class Controller
 
             attr_reader :model, :user, :params
-            class_attribute :nested_attribute
 
             def initialize(model, authentication, params)
                 @model  = model
@@ -189,8 +188,8 @@ module Skr
                 if params[:id]
                     query = query.where(id: params[:id])
                 end
-                if nested_attribute && params[nested_attribute]
-                    query = query.where(Hash[ nested_attribute, params[nested_attribute]])
+                if params[:nested_attribute]
+                    query = query.where(params[:nested_attribute])
                 end
                 if query_scopes.present?
                     query = add_scope_to_query(query)

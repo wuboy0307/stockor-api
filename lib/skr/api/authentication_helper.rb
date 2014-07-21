@@ -2,11 +2,19 @@ module Skr
     module API
         module AuthenticationHelper
             def authenticate!(model, type)
-                auth = Skr::API.config.authentication_provider.new(environment:env, params:params)
-                unless auth.allowed_access_to?(model, type)
-                    error!({ errors: {user: "Access Denied"}, message: auth.error_message }, 401)
+                authentication = Skr::API.config.authentication_provider.new(environment:env, params:params)
+                unless authentication.allowed_access_to?(model, type)
+                    error!({ errors: {user: "Access Denied"}, message: @authentication.error_message }, 401)
                 end
-                auth
+                @authentication
+            end
+
+            def authentication
+                @authentication
+            end
+
+            def session
+                env['rack.session']
             end
         end
     end
