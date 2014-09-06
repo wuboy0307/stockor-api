@@ -11,6 +11,7 @@ module Skr
 end
 
 require_rel 'api/*_helper.rb'
+require_relative 'api/model_api_path'
 require_relative 'api/null_authentication_provider'
 require_relative 'api/configuration'
 require_relative 'api/request_wrapper'

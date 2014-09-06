@@ -25,7 +25,7 @@ module Skr
 
             def self.build_route(model, options = {})
 
-                path = options[:path] || model.to_s.demodulize.pluralize.underscore.dasherize
+                path = options[:path] || model.api_path
                 controller = options[:controller] || Skr::API::Controller
 
                 parent_attribute = false
