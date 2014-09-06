@@ -1,5 +1,3 @@
-require 'pry'
-
 module Skr
     module API
         class Root < Grape::API

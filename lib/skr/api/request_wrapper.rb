@@ -1,4 +1,3 @@
-require 'pry'
 module Skr
     module API
         module RequestWrapper
