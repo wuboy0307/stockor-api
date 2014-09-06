@@ -9,17 +9,15 @@ module Skr
             #use Rack::Session::Cookie
             error_formatter :json, Skr::API::ErrorFormmater
 
-            # rescue_from ActiveRecord::InvalidForeignKey do |e|
-            #     ErrorFormmater.handle_fk_exception(e, env[:model])
-            # end
-            # rescue_from ActiveRecord::RecordNotFound do |e|
-            #     ErrorFormmater.handle_not_found_exception(e, env[:model])
-            # end
-            # rescue_from :all do |e|
-            #     ErrorFormmater.handle_exception(env[:model].to_s.demodulize + " raised " + e.message, 500, e)
-            # end
-
-
+            rescue_from ActiveRecord::InvalidForeignKey do |e|
+                ErrorFormmater.handle_fk_exception(e, env[:model])
+            end
+            rescue_from ActiveRecord::RecordNotFound do |e|
+                ErrorFormmater.handle_not_found_exception(e, env[:model])
+            end
+            rescue_from :all do |e|
+                ErrorFormmater.handle_exception(env[:model].to_s.demodulize + " raised " + e.message, 500, e)
+            end
 
             def self.build_route(model, options = {})
 
