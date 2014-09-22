@@ -31,5 +31,9 @@ module Skr
         Root.build_route PoReceipt
         Root.build_route PorLine, path: 'lines', under: 'po-receipts'
 
+        Root.get "default-records" do
+            { success: true, data: Skr::API.default_records }
+        end
+
     end
 end
