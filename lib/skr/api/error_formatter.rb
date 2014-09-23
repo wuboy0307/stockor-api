@@ -14,6 +14,7 @@ module Skr
                 Rack::Response.new([self.call(message)],
                                    code, {"Content-type" => "application/json"}
                                   ).finish
+                Skr::Core.logger.error e
             end
 
             def handle_fk_exception(e,model)
